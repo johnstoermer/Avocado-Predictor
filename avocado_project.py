@@ -21,10 +21,19 @@ def load_df(f):
     df = pd.get_dummies(df)
     return df
 
-def train_it(Xtrain, ytrain):
+def train_it_2layer(Xtrain, ytrain):
     avocado_model = tf.keras.models.Sequential([
       tf.keras.layers.Dense(58, input_dim=58, activation='relu'),
       tf.keras.layers.Dense(58, input_dim=58, activation='relu'),
+      tf.keras.layers.Dense(1)
+    ])
+    avocado_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    avocado_model.fit(Xtrain, ytrain, epochs=100)
+    return avocado_model
+
+def train_it_linear(Xtrain, ytrain):
+    avocado_model = tf.keras.models.Sequential([
+      tf.keras.layers.Dense(58, input_dim=58, activation='linear'),
       tf.keras.layers.Dense(1)
     ])
     avocado_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
@@ -46,14 +55,17 @@ Fit a model on the training set and evaluate it on the test set
 Retain the evaluation score and discard the model
 Summarize the skill of the model using the sample of model evaluation scores
 '''
-def kfold_it(df): #k = 5
+def kfold_it(df, linear=False): #k = 5
     df = df.sample(frac=1)
     folds = np.array_split(df, 5)
     fold_mses = []
     for i in range(5):
         test_df = folds[i]
         train_df = pd.concat([folds[j] for j in range(5) if j != i], axis=0)
-        model = train_it(train_df.values[:,1:], train_df.values[:,0])
+        if linear:
+            model = train_it_linear(train_df.values[:,1:], train_df.values[:,0])
+        else:
+            model = train_it_2layer(train_df.values[:,1:], train_df.values[:,0])
         fold_mse = test_it(model, test_df.values[:,1:], test_df.values[:,0])
         print('Fold ' + str(i) + ' MSE: ' + str(fold_mse))
         fold_mses.append(fold_mse)
@@ -63,4 +75,4 @@ def kfold_it(df): #k = 5
 if __name__ == "__main__":
 
     df = load_df('avocado.csv')
-    print(kfold_it(df))
+    print(kfold_it(df, linear=True))
