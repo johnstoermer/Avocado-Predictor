@@ -47,4 +47,4 @@ if __name__ == "__main__":
     prediction = avocado_model.predict(Xtrain)
 
     train_error =  (ytrain - prediction) ** 2
-    MSE = np.mean(train_error)
+    mean_sq_error = np.mean(train_error)
