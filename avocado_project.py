@@ -26,7 +26,7 @@ def train_it_2layer(Xtrain, ytrain, lr, reg):
       tf.keras.layers.Dense(1)
     ])
     avocado_model.compile(optimizer=tf.keras.optimizers.Adam(lr=lr), loss='mse', metrics=['mae'])
-    history = avocado_model.fit(Xtrain, ytrain, epochs=2)
+    history = avocado_model.fit(Xtrain, ytrain, epochs=100)
     return avocado_model, history
 
 def train_it_linear(Xtrain, ytrain, lr, reg):
@@ -35,7 +35,7 @@ def train_it_linear(Xtrain, ytrain, lr, reg):
       tf.keras.layers.Dense(1)
     ])
     avocado_model.compile(optimizer=tf.keras.optimizers.Adam(lr=lr), loss='mse', metrics=['mae'])
-    history = avocado_model.fit(Xtrain, ytrain, epochs=2)
+    history = avocado_model.fit(Xtrain, ytrain, epochs=100)
     return avocado_model, history
 
 def test_it(model, Xtest, ytest):
@@ -73,6 +73,7 @@ def kfold_it(df, lr, reg, linear=False): #k = 3
 
 if __name__ == "__main__":
     df = load_df('avocado.csv')
+    '''
     #test learning rates
     lrs = [0.001, 0.003, 0.005]
     #2layer
@@ -96,7 +97,7 @@ if __name__ == "__main__":
             color="#7f7f7f"
         )
     )
-    fig.write_image('fig1.pdf')
+    fig.write_image('fig1.png')
     #linear
     hists = []
     for lr in lrs:
@@ -118,9 +119,10 @@ if __name__ == "__main__":
             color="#7f7f7f"
         )
     )
-    fig.write_image('fig2.pdf')
+    fig.write_image('fig2.png')
+    '''
     #test regularization strengths
-    regs = [0.1, 0.5, 0.1]
+    regs = [0.1, 0.5, 1]
     #2layer
     hists = []
     for reg in regs:
@@ -142,7 +144,7 @@ if __name__ == "__main__":
             color="#7f7f7f"
         )
     )
-    fig.write_image('fig3.pdf')
+    fig.write_image('fig3.png')
     #linear
     hists = []
     for reg in regs:
@@ -164,9 +166,7 @@ if __name__ == "__main__":
             color="#7f7f7f"
         )
     )
-    fig.write_image('fig4.pdf')
-
-
+    fig.write_image('fig4.png')
 
 '''
 if __name__ == "__main__":
