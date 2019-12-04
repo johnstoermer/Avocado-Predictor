@@ -43,24 +43,14 @@ def test_it(model, Xtest, ytest):
     train_error =  (ytest - prediction) ** 2
     return np.mean(train_error)
 
-'''
-Shuffle the dataset randomly.
-Split the dataset into k groups
-For each unique group:
-Take the group as a hold out or test data set
-Take the remaining groups as a training data set
-Fit a model on the training set and evaluate it on the test set
-Retain the evaluation score and discard the model
-Summarize the skill of the model using the sample of model evaluation scores
-'''
-def kfold_it(df, lr, reg, linear=False): #k = 3
+def kfold_it(df, lr, reg, linear=False): #k = 5
     df = df.sample(frac=1)
-    folds = np.array_split(df, 3)
+    folds = np.array_split(df, 5) #change 5 to a lower value to increase speed
     fold_mses = []
     fold_hists = []
-    for i in range(3):
+    for i in range(5): #change 5 to a lower value to increase speed
         test_df = folds[i]
-        train_df = pd.concat([folds[j] for j in range(3) if j != i], axis=0)
+        train_df = pd.concat([folds[j] for j in range(5) if j != i], axis=0) #change 5 to a lower value to increase speed
         if linear:
             model, hist = train_it_linear(train_df.values[:,1:], train_df.values[:,0], lr, reg)
         else:
@@ -69,7 +59,7 @@ def kfold_it(df, lr, reg, linear=False): #k = 3
         print('Fold ' + str(i) + ' MSE: ' + str(fold_mse))
         fold_hists.append(hist.history['mean_absolute_error'])
         fold_mses.append(fold_mse)
-    return np.mean(fold_mses), np.std(fold_mses), np.mean(fold_hists, axis=0) ** 2
+    return fold_mses, np.std(fold_mses), np.mean(fold_hists, axis=0) ** 2
 
 if __name__ == "__main__":
     df = load_df('avocado.csv')
@@ -120,7 +110,6 @@ if __name__ == "__main__":
         )
     )
     fig.write_image('fig2.png')
-    '''
     #test regularization strengths
     regs = [0.1, 0.5, 1]
     #2layer
@@ -167,15 +156,44 @@ if __name__ == "__main__":
         )
     )
     fig.write_image('fig4.png')
-
-'''
-if __name__ == "__main__":
-    df = load_df('avocado.csv')
-    a, b, hist = kfold_it(df, 0.003, 0.1, linear=False)
+    '''
+    #test sample sizes
+    samplesizes = [8000, 12000, 16000]
+    #2layer
+    mses = []
+    for samplesize in samplesizes:
+        mse, a, b = kfold_it(df.sample(n=samplesize), 0.003, 0.5, linear=False)
+        mses.append(mse)
     fig = go.Figure()
-    X = list(range(100))
-    fig.add_trace(go.Scatter(x=X, y=hist,
-                    mode='lines',
-                    name='0.003 learning rate'))
-    fig.write_image('fig.pdf')
-'''
+    for i in range(len(mses)):
+        fig.add_trace(go.Box(y=mses[i], name=str(samplesizes[i])))
+    fig.layout.update(
+        title='MSE vs Sample Size',
+        xaxis_title='Sample Size',
+        yaxis_title='MSE',
+        font=dict(
+            family="Courier New, monospace",
+            size=18,
+            color="#7f7f7f"
+        )
+    )
+    fig.write_image('fig5.png')
+    #linear
+    mses = []
+    for samplesize in samplesizes:
+        mse, a, b = kfold_it(df.sample(n=samplesize), 0.003, 0.5, linear=True)
+        mses.append(mse)
+    fig = go.Figure()
+    for i in range(len(mses)):
+        fig.add_trace(go.Box(y=mses[i], name=str(samplesizes[i])))
+    fig.layout.update(
+        title='MSE vs Sample Size',
+        xaxis_title='Sample Size',
+        yaxis_title='MSE',
+        font=dict(
+            family="Courier New, monospace",
+            size=18,
+            color="#7f7f7f"
+        )
+    )
+    fig.write_image('fig6.png')
